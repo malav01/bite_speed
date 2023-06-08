@@ -1,5 +1,6 @@
 package com.example.bite_speed.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.Entity;
@@ -14,7 +15,7 @@ public class Response {
     private Integer primaryContatctId;
     private List<String> emails;
     private List<String> phoneNumbers;
-    private List<Integer> secondaryContactIds;
+    private List<Integer> secondaryContactIds = new ArrayList<>();
     public Integer getPrimaryContatctId() {
         return primaryContatctId;
     }

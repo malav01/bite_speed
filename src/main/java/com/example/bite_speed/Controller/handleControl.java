@@ -4,6 +4,7 @@ import java.sql.*;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +39,8 @@ public class handleControl {
     public Response handlRequest(@RequestBody Request input){
         String phoneNumber = input.getPhoneNumber();
         String email = input.getEmail();
-        
+
+        // case - 1 : new user        
         if(!phoneDao.existsById(phoneNumber) && !emailDao.existsById(email)){
             Contact contact = new Contact();
             contact.setPhoneNumber(phoneNumber);
@@ -68,11 +70,12 @@ public class handleControl {
             phones.add(phoneNumber); 
             response.setPhoneNumbers(phones);
             response.setPrimaryContatctId(contact.getId());
-            response.setSecondaryContactIds(null);
             responseDao.save(response);
 
             return response;
         }
+
+        
 
         return null;
     }
