@@ -75,6 +75,35 @@ public class handleControl {
             return response;
         }
 
+        // case - 2 : email present
+        else if(!phoneDao.existsById(phoneNumber) && emailDao.existsById(email)){
+            Optional<Email> emailObj = emailDao.findById(email);
+            Email email2 = emailObj.get();
+            Contact id = email2.getContactid();
+            Phone phone = new Phone();
+            phone.setContactid(id);
+            phone.setPhoneNumber(phoneNumber);
+            phoneDao.save(phone);
+
+            Contact contact = new Contact();
+            contact.setPhoneNumber(phoneNumber);
+            contact.setEmail(email);
+            contact.setLinkedId(id.getId());
+            contact.setLinkPrecedence("secondary");
+            contact.setCreatedAt(ZonedDateTime.now());
+            contact.setDeletedAt(null);
+            contact.setUpdatedAt(ZonedDateTime.now());
+            contact = contactDao.save(contact);
+
+            Optional<Response> responseObj = responseDao.findById(id.getId());
+            Response response = responseObj.get();
+            response.getPhoneNumbers().add(phoneNumber);
+            response.getSecondaryContactIds().add(contact.getId());
+            responseDao.save(response);
+
+            return response;
+        }
+
         
 
         return null;
