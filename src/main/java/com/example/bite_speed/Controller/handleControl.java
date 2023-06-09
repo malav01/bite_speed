@@ -104,8 +104,100 @@ public class handleControl {
             return response;
         }
 
-        
+        // case - 3 : phone no present
+        else if(phoneDao.existsById(phoneNumber) && !emailDao.existsById(email)){
+            Optional<Phone> phoneOptional = phoneDao.findById(phoneNumber);
+            Phone phone = phoneOptional.get();
+            Contact id = phone.getContactid();
+            Email email2 = new Email();
+            email2.setContactid(id);
+            email2.setEmail(email);
+            emailDao.save(email2);
 
-        return null;
+            Contact contact = new Contact();
+            contact.setPhoneNumber(phoneNumber);
+            contact.setEmail(email);
+            contact.setLinkedId(id.getId());
+            contact.setLinkPrecedence("secondary");
+            contact.setCreatedAt(ZonedDateTime.now());
+            contact.setDeletedAt(null);
+            contact.setUpdatedAt(ZonedDateTime.now());
+            contact = contactDao.save(contact);
+
+            Optional<Response> responseObj = responseDao.findById(id.getId());
+            Response response = responseObj.get();
+            response.getEmails().add(email);
+            response.getSecondaryContactIds().add(contact.getId());
+            responseDao.save(response);
+
+            return response;
+        }
+
+        // case - 4 : one of them is null
+
+        // case - 5 : both present
+        else{
+            Optional<Email> emailOptional = emailDao.findById(email);
+            Email emailObj = emailOptional.get();
+            Contact id1 = emailObj.getContactid();
+
+            Optional<Phone> phoneOptional = phoneDao.findById(phoneNumber);
+            Phone phone = phoneOptional.get();
+            Contact id2 = phone.getContactid();
+
+            if(id1.getId()>id2.getId()){
+                emailOptional = emailDao.findById(id1.getEmail());
+                Email email2 = emailOptional.get();
+                email2.setContactid(id2);
+                emailDao.save(email2);
+
+                phoneOptional = phoneDao.findById(id1.getPhoneNumber());
+                phone = phoneOptional.get();
+                phone.setContactid(id2);
+                phoneDao.save(phone);
+                
+                Optional<Response> responseObj = responseDao.findById(id1.getId());
+                Response response1 = responseObj.get();
+
+                responseObj = responseDao.findById(id2.getId());
+                Response response2 = responseObj.get();
+
+                response2.getEmails().addAll(response1.getEmails());
+                response2.getPhoneNumbers().addAll(response1.getPhoneNumbers());
+                response2.getSecondaryContactIds().add(response1.getPrimaryContatctId());
+                response2.getSecondaryContactIds().addAll(response1.getSecondaryContactIds());
+                responseDao.save(response2);
+                responseDao.delete(response1);
+
+                return response2;
+            }
+
+            else{
+                emailOptional = emailDao.findById(id2.getEmail());
+                Email email2 = emailOptional.get();
+                email2.setContactid(id1);
+                emailDao.save(email2);
+
+                phoneOptional = phoneDao.findById(id2.getPhoneNumber());
+                phone = phoneOptional.get();
+                phone.setContactid(id1);
+                phoneDao.save(phone);
+
+                Optional<Response> responseObj = responseDao.findById(id2.getId());
+                Response response1 = responseObj.get();
+
+                responseObj = responseDao.findById(id1.getId());
+                Response response2 = responseObj.get();
+
+                response2.getEmails().addAll(response1.getEmails());
+                response2.getPhoneNumbers().addAll(response1.getPhoneNumbers());
+                response2.getSecondaryContactIds().add(response1.getPrimaryContatctId());
+                response2.getSecondaryContactIds().addAll(response1.getSecondaryContactIds());
+                responseDao.save(response2);
+                responseDao.delete(response1);
+
+                return response2;
+            }
+        }
     }
 }
